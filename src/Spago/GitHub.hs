@@ -55,6 +55,9 @@ readToken = readFromEnv <|> readFromFile
       assertDirectory globalCache
       readTextFile $ pathFromText $ Text.pack $ globalCache </> tokenCacheFile
 
+-- Fetches all tags for purescript/package-sets repo
+getPackageSetTags :: IO (Either GitHub.Error (Vector GitHub.Tag))
+getPackageSetTags = GitHub.github'$ GitHub.tagsForR "purescript" "package-sets" GitHub.FetchAll
 
 getLatestPackageSetsTag :: Spago (Either SomeException Text)
 getLatestPackageSetsTag = do

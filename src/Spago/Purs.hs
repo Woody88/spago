@@ -6,6 +6,7 @@ module Spago.Purs
   , version
   , parseDocsFormat
   , SourcePath(..)
+  , TagVersion (..)
   , TargetPath(..)
   , ModuleName(..)
   , ExtraArg(..)

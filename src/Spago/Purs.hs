@@ -23,6 +23,7 @@ import qualified Spago.Dhall    as Dhall
 import qualified Spago.Messages as Messages
 
 
+newtype TagVersion = TagVersion { unTagVersion :: Text }
 newtype ModuleName = ModuleName { unModuleName :: Text }
 newtype TargetPath = TargetPath { unTargetPath :: Text }
 newtype SourcePath = SourcePath { unSourcePath :: Text }

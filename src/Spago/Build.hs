@@ -23,6 +23,7 @@ module Spago.Build
   , Purs.TargetPath (..)
   , Purs.WithMain (..)
   , Purs.WithSrcMap (..)
+  , Purs.TagVersion (..)
   ) where
 
 import           Spago.Prelude hiding (link)

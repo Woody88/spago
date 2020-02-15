@@ -38,7 +38,6 @@ makePackageSetFile force comments = do
     else logWarn $ display $ Messages.foundExistingProject packagesPath
   Dhall.format packagesPath
 
-
 -- | Tries to upgrade the Package-Sets release of the local package set.
 --   It will:
 --   - try to read the latest tag from GitHub
@@ -46,8 +45,8 @@ makePackageSetFile force comments = do
 --   - try to replace the git tag to which the package-set imports point to
 --     (if they point to the Package-Sets repo. This can be eventually made GitHub generic)
 --   - if all of this succeeds, it will regenerate the hashes and write to file
-upgradePackageSet :: Spago ()
-upgradePackageSet = do
+upgradePackageSet :: Maybe Purs.TagVersion -> Spago ()
+upgradePackageSet _ = do
   logDebug "Running `spago upgrade-set`"
 
   GitHub.getLatestPackageSetsTag >>= \case

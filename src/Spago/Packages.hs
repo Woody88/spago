@@ -46,8 +46,8 @@ import           Spago.Types              as PackageSet
 --   - create `spago.dhall` to manage project config: name, deps, etc
 --   - create an example `src` folder (if needed)
 --   - create an example `test` folder (if needed)
-initProject :: Bool -> Dhall.TemplateComments -> Spago ()
-initProject force comments = do
+initProject :: Maybe Purs.TagVersion -> Bool -> Dhall.TemplateComments -> Spago ()
+initProject tagVersion force comments = do
   logInfo "Initializing a sample project or migrating an existing one.."
 
   -- packages.dhall and spago.dhall overwrite can be forced
@@ -55,7 +55,7 @@ initProject force comments = do
   Config.makeConfig force comments
 
   -- Get the latest version of the package set if possible
-  PackageSet.upgradePackageSet
+  PackageSet.upgradePackageSet tagVersion
 
   -- If these directories (or files) exist, we skip copying "sample sources"
   -- Because you might want to just init a project with your own source files,

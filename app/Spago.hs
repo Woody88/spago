@@ -14,7 +14,7 @@ import           Spago.Build         (BuildOptions (..), DepsOnly (..), ExtraArg
                                       ModuleName (..), NoBuild (..), NoInstall (..), NoSearch (..),
                                       OpenDocs (..), PathType (..), ShareOutput (..),
                                       SourcePath (..), TargetPath (..), Watch (..), WithMain (..),
-                                      WithSrcMap (..))
+                                      WithSrcMap (..), TagVersion (..))
 import qualified Spago.Build
 import qualified Spago.Config        as Config
 import           Spago.Dhall         (TemplateComments (..))
@@ -37,7 +37,7 @@ data Command
   -- | ### Commands for working with Spago projects
   --
   -- | Initialize a new project
-  = Init Bool TemplateComments
+  = Init (Maybe TagVersion) Bool TemplateComments
 
   -- | Install (download) dependencies defined in spago.dhall
   | Install (Maybe CacheFlag) [PackageName]
@@ -86,8 +86,8 @@ data Command
   --   Builds the project before bundling
   | BundleModule (Maybe ModuleName) (Maybe TargetPath) NoBuild BuildOptions
 
-  -- | Upgrade the package-set to the latest release
-  | PackageSetUpgrade
+  -- | Upgrade the package-set to the latest release or a specific version
+  | PackageSetUpgrade (Maybe TagVersion)
 
   -- | Freeze the package-set so it will be cached
   | Freeze
@@ -159,7 +159,7 @@ parser = do
     depsOnly    = bool AllSources DepsOnly <$> CLI.switch "deps-only" 'd' "Only use sources from dependencies, skipping the project sources."
     noSearch    = bool AddSearch NoSearch <$> CLI.switch "no-search" 'S' "Do not make the documentation searchable"
     clearScreen = bool NoClear DoClear <$> CLI.switch "clear-screen" 'l' "Clear the screen on rebuild (watch mode only)"
-    noBuild     = bool DoBuild NoBuild <$> CLI.switch "no-build" 's' "Skip build step"
+    noBuild     = bool DoBuild NoBuild <$> CLI.switch "no-build" 's' "Skip build step"  
     srcMapFlag  = bool WithoutSrcMap WithSrcMap <$> CLI.switch "source-maps" 'x' "Whether to generate source maps for the bundle"
     jsonFlag    = bool JsonOutputNo JsonOutputYes <$> CLI.switch "json" 'j' "Produce JSON output"
     dryRun      = bool DryRun NoDryRun <$> CLI.switch "no-dry-run" 'f' "Actually perform side-effects (the default is to describe what would be done)"
@@ -177,6 +177,7 @@ parser = do
     nodeArgs         = many $ CLI.opt (Just . ExtraArg) "node-args" 'a' "Argument to pass to node (run/test only)"
     replPackageNames = many $ CLI.opt (Just . PackageName) "dependency" 'D' "Package name to add to the REPL as dependency"
     sourcePaths      = many $ CLI.opt (Just . SourcePath) "path" 'p' "Source path to include"
+    tagVersion       = CLI.optional $ CLI.opt (Just . TagVersion) "tag" 't' "Sets package-sets version (e.g. psc-0.13.2-20190725)"
 
     packageName     = CLI.arg (Just . PackageName) "package" "Specify a package name. You can list them with `ls packages`"
     packageNames    = many $ CLI.arg (Just . PackageName) "package" "Package name to add as dependency"
@@ -195,7 +196,7 @@ parser = do
     initProject =
       ( "init"
       , "Initialize a new sample project, or migrate a psc-package one"
-      , Init <$> force <*> noComments
+      , Init <$> tagVersion <*> force <*> noComments
       )
 
     build =
@@ -298,7 +299,7 @@ parser = do
     upgradeSet =
       ( "upgrade-set"
       , "Upgrade the upstream in packages.dhall to the latest package-sets release"
-      , pure PackageSetUpgrade
+      , PackageSetUpgrade <$> tagVersion
       )
 
     freeze =
@@ -421,7 +422,7 @@ main = do
 
   runWithEnv globalOptions $
     case command of
-      Init force noComments                 -> Spago.Packages.initProject force noComments
+      Init tagVersion force noComments     -> Spago.Packages.initProject tagVersion force noComments
       Install cacheConfig packageNames      -> Spago.Packages.install cacheConfig packageNames
       ListPackages jsonFlag                 -> Spago.Packages.listPackages PackageSetPackages jsonFlag
       ListDeps jsonFlag IncludeTransitive   -> Spago.Packages.listPackages TransitiveDeps jsonFlag
@@ -429,7 +430,7 @@ main = do
       Sources                               -> Spago.Packages.sources
       Verify cacheConfig package            -> Spago.Packages.verify cacheConfig NoCheckModulesUnique (Just package)
       VerifySet cacheConfig chkModsUniq     -> Spago.Packages.verify cacheConfig chkModsUniq Nothing
-      PackageSetUpgrade                     -> Spago.Packages.upgradePackageSet
+      PackageSetUpgrade tagVersion          -> Spago.Packages.upgradePackageSet tagVersion
       Freeze                                -> Spago.Packages.freeze Spago.Packages.packagesPath
       Build buildOptions                    -> Spago.Build.build buildOptions Nothing
       Test modName buildOptions nodeArgs    -> Spago.Build.test modName buildOptions nodeArgs

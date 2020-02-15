@@ -23,7 +23,6 @@ module Spago.Build
   , Purs.TargetPath (..)
   , Purs.WithMain (..)
   , Purs.WithSrcMap (..)
-  , Purs.TagVersion (..)
   ) where
 
 import           Spago.Prelude hiding (link)
@@ -194,7 +193,7 @@ repl cacheFlag newPackages sourcePaths pursArgs depsOnly = do
       Temp.withTempDirectory cacheDir "spago-repl-tmp" $ \dir -> do
         Turtle.cd (Turtle.decodeString dir)
 
-        Packages.initProject False Dhall.WithComments
+        Packages.initProject Nothing False Dhall.WithComments
 
         config@Config.Config{ packageSet = Types.PackageSet{..}, ..} <- Config.ensureConfigUnsafe
 
